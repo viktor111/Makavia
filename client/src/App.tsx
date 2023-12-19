@@ -1,30 +1,15 @@
 import React, { useEffect } from 'react';
 import './App.css';
 import {
-  createBrowserRouter,
-  RouterProvider,
+  Link,
+  Route,
+  Routes,
 } from "react-router-dom";
 import Root from './routes/root';
 import StartGame from './routes/startGame';
 import { useGameContext } from './context/game';
 import { PlayerTestData } from './testData/playerTestData';
 import Character from './routes/character';
-
-let router = createBrowserRouter([
-  {
-    path: "/",
-    element: <Root />,
-  },
-  {
-    path: "/start-game",
-    element: <StartGame />,
-  },
-  {
-    path: "/character",
-    element: <Character />,
-  }
-]);
-
 
 function App() {
   const { player, setPlayer } = useGameContext();
@@ -36,7 +21,17 @@ function App() {
 
   return (
     <>
-      <RouterProvider router={router} />
+    <Routes>
+      <Route path="/" element={<Root />} />
+      <Route path="/start-game" element={<StartGame />} />
+      <Route path="/character" element={<Character />} />
+    </Routes>
+
+    <nav>
+      <Link to="/">Home</Link>
+      <Link to="/start-game">Start Game</Link>
+      <Link to="/character">Character</Link>
+    </nav>
     </>
   );
 }
