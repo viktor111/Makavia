@@ -78,9 +78,11 @@ class Enemy {
         return this.health <= 0;
     }
 
-    useAbility(player: Player) {
+    useAbility(player: Player): { ability: Ability, abilityUseResult: number }{
         let ability = this.abilities[Math.floor(Math.random() * this.abilities.length)];
-        ability.use(player, this);
+        let abilityUseResult = ability.useOnPlayer(player, this);
+
+        return { ability, abilityUseResult };
     }
 
     dropItem(): Item {
@@ -148,7 +150,7 @@ class EnemyGenerator {
             enemies.push(enemy);
         }
 
-        return [];
+        return enemies;
     }
 
     private generateEnemy(healthMultiplier: number, damageMultiplier: number, armorMultiplier: number, xpMultiplier: number, worldTier: WorldTierEnum): Enemy {

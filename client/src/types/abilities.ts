@@ -44,7 +44,8 @@ abstract class Ability {
         this.isUnlocked = true;
     }
 
-    abstract use(player: Player, enemy: Enemy): void;
+    abstract use(player: Player, enemy: Enemy): number;
+    abstract useOnPlayer(player: Player, enemy: Enemy): number;
 }
 
 class Slash extends Ability {
@@ -55,7 +56,16 @@ class Slash extends Ability {
 
     use(player: Player, enemy: Enemy) {
         let damage = player.strength.value * 2;
-        enemy.health -= damage;
+        let damageAfterArmor = damage * (1 - enemy.armor / 100);
+        enemy.health -= damageAfterArmor;
+        return damageAfterArmor;
+    }
+
+    useOnPlayer(player: Player, enemy: Enemy) {
+        let damage = enemy.damage * 2;
+        let damageAfterArmor = damage * (1 - player.armor / 100);
+        player.health -= damageAfterArmor;
+        return damageAfterArmor;
     }
 }
 
@@ -67,7 +77,16 @@ class Stab extends Ability {
 
     use(player: Player, enemy: Enemy) {
         let damage = player.strength.value * 2;
-        enemy.health -= damage;
+        let damageAfterArmor = damage * (1 - enemy.armor / 100);
+        enemy.health -= damageAfterArmor;
+        return damageAfterArmor;
+    }
+
+    useOnPlayer(player: Player, enemy: Enemy) {
+        let damage = enemy.damage * 2;
+        let damageAfterArmor = damage * (1 - player.armor / 100);
+        player.health -= damageAfterArmor;
+        return damageAfterArmor;
     }
 }
 
@@ -79,7 +98,20 @@ class Fireball extends Ability {
 
     use(player: Player, enemy: Enemy) {
         let damage = player.intelligence.value * 2;
-        enemy.health -= damage;
+        let armorIgnored = enemy.armor * 0.5;
+        let effectiveArmor = enemy.armor - armorIgnored;
+        let damageAfterArmor = damage * (1 - effectiveArmor / 100);
+        enemy.health -= damageAfterArmor;
+        return damageAfterArmor;
+    }
+
+    useOnPlayer(player: Player, enemy: Enemy) {
+        let damage = enemy.damage * 2;
+        let armorIgnored = player.armor * 0.5;
+        let effectiveArmor = player.armor - armorIgnored;
+        let damageAfterArmor = damage * (1 - effectiveArmor / 100);
+        player.health -= damageAfterArmor;
+        return damageAfterArmor;
     }
 }
 
@@ -92,6 +124,13 @@ class Heal extends Ability {
     use(player: Player, enemy: Enemy) {
         let heal = player.faith.value * 2;
         player.health += heal;
+        return heal;
+    }
+
+    useOnPlayer(player: Player, enemy: Enemy) {
+        let heal = player.faith.value * 2;
+        enemy.health += heal;
+        return heal;
     }
 }
 
@@ -103,7 +142,20 @@ class Poison extends Ability {
 
     use(player: Player, enemy: Enemy) {
         let damage = player.faith.value * 2;
-        enemy.health -= damage;
+        let armorIgnored = enemy.armor * 0.5;
+        let effectiveArmor = enemy.armor - armorIgnored;
+        let damageAfterArmor = damage * (1 - effectiveArmor / 100);
+        enemy.health -= damageAfterArmor;
+        return damageAfterArmor;
+    }
+
+    useOnPlayer(player: Player, enemy: Enemy) {
+        let damage = enemy.damage * 2;
+        let armorIgnored = player.armor * 0.5;
+        let effectiveArmor = player.armor - armorIgnored;
+        let damageAfterArmor = damage * (1 - effectiveArmor / 100);
+        player.health -= damageAfterArmor;
+        return damageAfterArmor;
     }
 }
 
@@ -114,7 +166,15 @@ class ArmorOfLight extends Ability {
     }
 
     use(player: Player, enemy: Enemy) {
-        player.armor += 10;
+        const armorGain = 10;
+        player.armor += armorGain;
+        return armorGain;
+    }
+
+    useOnPlayer(player: Player, enemy: Enemy) {
+        const armorGain = 10;
+        enemy.armor += armorGain;
+        return armorGain;
     }
 }
 

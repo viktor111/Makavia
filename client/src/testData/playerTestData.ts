@@ -1,4 +1,4 @@
-import { Ability, Heal, Slash } from "../types/abilities";
+import { Ability, ArmorOfLight, Heal, Slash } from "../types/abilities";
 import { Attribute, AttributeEnum } from "../types/attributes";
 import { PlayerClassEnum } from "../types/classes";
 import { ArmorType, Item, ItemGenerator, ItemSlot, ItemType } from "../types/items";
@@ -18,7 +18,7 @@ class PlayerTestData {
         const level: number = 2;
         const skillPoints: number = 2;
 
-        const health: number = 100;
+        const health: number = 1000;
         const maxHealth: number = 100;
         const mana: number = 100;
         const maxMana: number = 100;
@@ -59,7 +59,7 @@ class PlayerTestData {
         const faith: Attribute = new Attribute(AttributeEnum.Faith, 10);
         const craftsmanship: Attribute = new Attribute(AttributeEnum.Craftsmanship, 10);
 
-        const learnedAbilities: Ability[] = [new Slash(), new Heal()];
+        const learnedAbilities: Ability[] = [new Slash(), new Heal(), new ArmorOfLight()];
         const player = new Player(
             name,
             age,
