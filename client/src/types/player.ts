@@ -1,18 +1,28 @@
-import { Ability, AbilityType } from "./abilities";
+import { Ability, AbilityEffectType, AbilityResolution } from "./abilities";
 import { Attribute, AttributeEnum } from "./attributes";
 import { PlayerClassEnum } from "./classes";
 import { Enemy } from "./enemies";
 import { Accessory, Armor, Item, ItemSlot, ItemType, Weapon } from "./items";
 import { PlayerBackgroundEnum } from "./playerBackground";
+import { WorldTierEnum } from "./worldTier";
+
+const EXPERIENCE_PER_LEVEL = 100;
+
+type PlayerAbilityOutcome = {
+    resolution: AbilityResolution;
+    experienceGained: number;
+    leveledUp: boolean;
+    droppedItem?: Item;
+};
 
 class Player {
     name: string;
     age: number;
     background: PlayerBackgroundEnum;
     class: PlayerClassEnum;
-    worldTier: number;
+    worldTier: WorldTierEnum;
     gold: number;
-    expiriance: number;
+    experience: number;
     level: number;
     skillPoints: number;
 
@@ -28,6 +38,10 @@ class Player {
     armor: number;
     damage: number;
 
+    private baseArmor: number;
+    private baseDamage: number;
+    private baseAttributes!: Record<AttributeEnum, number>;
+
     inventory: Item[];
 
     equippedHead: string;
@@ -37,7 +51,7 @@ class Player {
     equippedWeapon: string;
     equippedOffhand: string;
     equippedNeck: string;
-    equppedRing: string;
+    equippedRing: string;
 
     strength: Attribute;
     constitution: Attribute;
@@ -49,7 +63,8 @@ class Player {
 
     learnedAbilities: Ability[];
 
-    constructor(name: string,
+    constructor(
+        name: string,
         age: number,
         background: PlayerBackgroundEnum,
         playerClass: PlayerClassEnum,
@@ -78,13 +93,13 @@ class Player {
         equippedWeapon: string,
         equippedOffhand: string,
         equippedNeck: string,
-        equppedRing: string,
+        equippedRing: string,
         learnedAbilities: Ability[],
         level: number,
-        expiriance: number,
+        experience: number,
         gold: number,
         skillPoints: number,
-        worldTier: number,
+        worldTier: WorldTierEnum,
     ) {
         this.name = name;
         this.age = age;
@@ -93,7 +108,7 @@ class Player {
 
         this.worldTier = worldTier;
         this.gold = gold;
-        this.expiriance = expiriance;
+        this.experience = experience;
         this.level = level;
         this.skillPoints = skillPoints;
 
@@ -108,7 +123,9 @@ class Player {
         this.piety = piety;
         this.maxPiety = maxPiety;
 
+        this.baseArmor = armor;
         this.armor = armor;
+        this.baseDamage = damage;
         this.damage = damage;
 
         this.equippedHead = equippedHead;
@@ -118,7 +135,7 @@ class Player {
         this.equippedWeapon = equippedWeapon;
         this.equippedOffhand = equippedOffhand;
         this.equippedNeck = equippedNeck;
-        this.equppedRing = equppedRing;
+        this.equippedRing = equippedRing;
 
         this.strength = new Attribute(AttributeEnum.Strength, strength);
         this.constitution = new Attribute(AttributeEnum.Constitution, constitution);
@@ -130,59 +147,9 @@ class Player {
 
         this.learnedAbilities = learnedAbilities;
 
-        this.addBonusForEquippedItems();
-        this.addBonusToAttributesByBackgroudn();
-    }
-
-    addBonusForEquippedItems(): void {
-        if (this.equippedHead) {
-            let item = this.inventory.find(item => item.id === this.equippedHead);
-            if (item) {
-                this.updateArmorFromItem(item as Armor);
-            }
-        }
-        if (this.equippedChest) {
-            let item = this.inventory.find(item => item.id === this.equippedChest);
-            if (item) {
-                this.updateArmorFromItem(item as Armor);
-            }
-        }
-        if (this.equippedLegs) {
-            let item = this.inventory.find(item => item.id === this.equippedLegs);
-            if (item) {
-                this.updateArmorFromItem(item as Armor);
-            }
-        }
-        if (this.equippedFeet) {
-            let item = this.inventory.find(item => item.id === this.equippedFeet);
-            if (item) {
-                this.updateArmorFromItem(item as Armor);
-            }
-        }
-        if (this.equippedWeapon) {
-            let item = this.inventory.find(item => item.id === this.equippedWeapon);
-            if (item) {
-                this.updateDamageFromItem(item as Weapon, false);
-            }
-        }
-        if (this.equippedOffhand) {
-            let item = this.inventory.find(item => item.id === this.equippedOffhand);
-            if (item) {
-                this.updateDamageFromItem(item as Weapon, true);
-            }
-        }
-        if (this.equippedNeck) {
-            let item = this.inventory.find(item => item.id === this.equippedNeck);
-            if (item) {
-                this.updateAttributesFromAccessorie(item as Accessory);
-            }
-        }
-        if (this.equppedRing) {
-            let item = this.inventory.find(item => item.id === this.equppedRing);
-            if (item) {
-                this.updateAttributesFromAccessorie(item as Accessory);
-            }
-        }
+        this.applyBackgroundBonuses();
+        this.captureBaseAttributes();
+        this.applyEquipmentBonuses();
     }
 
     learnAbility(ability: Ability): void {
@@ -200,33 +167,62 @@ class Player {
         this.skillPoints--;
     }
 
-    takeDamage(damage: number): void {
-        const damgeToTake = damage - (this.armor / 2);
-        this.health -= damgeToTake;
+    takeDamage(rawDamage: number, armorPenetration: number = 0): number {
+        const damageTaken = this.calculateMitigatedDamage(rawDamage, armorPenetration, this.armor);
+        this.health = Math.max(0, this.health - damageTaken);
+        return damageTaken;
     }
 
-    useAbility(ability: Ability, enemy: Enemy): void {
-        ability.use(this, enemy);
-        if (ability.type === AbilityType.Attack || ability.type === AbilityType.Special || ability.type === AbilityType.Curse) {
-
-            if (enemy.isDead()) {
-                this.gainExp(enemy.xpDrop);
-                let droppedItem = enemy.dropItem();
-                this.addItemToInventory(droppedItem);
-            }
+    heal(amount: number): number {
+        if (amount <= 0) {
+            return 0;
         }
+        const previousHealth = this.health;
+        this.health = Math.min(this.maxHealth, this.health + amount);
+        return this.health - previousHealth;
     }
 
-    gainExp(exp: number): void {
-        this.expiriance += exp;
-        if (this.expiriance >= 100) {
+    adjustArmor(amount: number): void {
+        this.armor = Math.max(0, this.armor + amount);
+    }
+
+    useAbility(ability: Ability, enemy: Enemy): PlayerAbilityOutcome {
+        const resolution = ability.use(this, enemy);
+
+        let experienceGained = 0;
+        let leveledUp = false;
+        let droppedItem: Item | undefined;
+
+        if (resolution.effect === AbilityEffectType.Damage && resolution.target === "enemy" && enemy.isDead()) {
+            experienceGained = enemy.xpDrop;
+            leveledUp = this.gainExperience(experienceGained);
+            droppedItem = enemy.dropItem();
+            this.addItemToInventory(droppedItem);
+        }
+
+        return {
+            resolution,
+            experienceGained,
+            leveledUp,
+            droppedItem,
+        };
+    }
+
+    gainExperience(experience: number): boolean {
+        this.experience += experience;
+        let leveledUp = false;
+
+        while (this.experience >= EXPERIENCE_PER_LEVEL) {
+            this.experience -= EXPERIENCE_PER_LEVEL;
             this.levelUp();
+            leveledUp = true;
         }
+
+        return leveledUp;
     }
 
-    levelUp(): void {
+    private levelUp(): void {
         this.level++;
-        this.expiriance = 0;
         this.skillPoints += 1;
     }
 
@@ -235,203 +231,220 @@ class Player {
     }
 
     equipHead(itemId: string): void {
-        if (this.equippedHead) {
-            let item = this.inventory.find(item => item.id === this.equippedHead);
-            if (item) {
-                item.isEquipped = false;
-            }
-        }
-        let item = this.inventory.find(item => item.id === itemId);
-        if (item) {
-            if (item.type === ItemType.Armor && item.slot === ItemSlot.Head) {
-                this.equippedHead = item.id;
-                this.updateArmorFromItem(item as Armor);
-                item.isEquipped = true;
-            }
-            else {
-                throw new Error("Item is not a head armor");
-            }
-        }
-        else {
-            throw new Error("Item not found");
-        }
+        this.equippedHead = this.swapArmor(this.equippedHead, itemId, ItemSlot.Head);
+        this.applyEquipmentBonuses();
     }
 
     equipChest(itemId: string): void {
-        if (this.equippedChest) {
-            let item = this.inventory.find(item => item.id === this.equippedChest);
-            if (item) {
-                item.isEquipped = false;
-            }
-        }
-        let item = this.inventory.find(item => item.id === itemId);
-        if (item) {
-            if (item.type === ItemType.Armor && item.slot === ItemSlot.Chest) {
-                this.equippedChest = item.id;
-                this.updateArmorFromItem(item as Armor);
-                item.isEquipped = true;
-            }
-            else {
-                throw new Error("Item is not a chest armor");
-            }
-        }
-        else {
-            throw new Error("Item not found");
-        }
+        this.equippedChest = this.swapArmor(this.equippedChest, itemId, ItemSlot.Chest);
+        this.applyEquipmentBonuses();
     }
 
     equipLegs(itemId: string): void {
-        if (this.equippedLegs) {
-            let item = this.inventory.find(item => item.id === this.equippedLegs);
-            if (item) {
-                item.isEquipped = false;
-            }
-        }
-        let item = this.inventory.find(item => item.id === itemId);
-        if (item) {
-            if (item.type === ItemType.Armor && item.slot === ItemSlot.Legs) {
-                this.equippedLegs = item.id;
-                this.updateArmorFromItem(item as Armor);
-                item.isEquipped = true;
-            }
-            else {
-                throw new Error("Item is not a legs armor");
-            }
-        }
-        else {
-            throw new Error("Item not found");
-        }
+        this.equippedLegs = this.swapArmor(this.equippedLegs, itemId, ItemSlot.Legs);
+        this.applyEquipmentBonuses();
     }
 
     equipFeet(itemId: string): void {
-        if (this.equippedFeet) {
-            let item = this.inventory.find(item => item.id === this.equippedFeet);
-            if (item) {
-                item.isEquipped = false;
-            }
-        }
-        let item = this.inventory.find(item => item.id === itemId);
-        if (item) {
-            if (item.type === ItemType.Armor && item.slot === ItemSlot.Feet) {
-                this.equippedFeet = item.id;
-                this.updateArmorFromItem(item as Armor);
-                item.isEquipped = true;
-            }
-            else {
-                throw new Error("Item is not a feet armor");
-            }
-        }
-        else {
-            throw new Error("Item not found");
-        }
+        this.equippedFeet = this.swapArmor(this.equippedFeet, itemId, ItemSlot.Feet);
+        this.applyEquipmentBonuses();
     }
 
     equipWeapon(itemId: string): void {
-        if (this.equippedWeapon) {
-            let item = this.inventory.find(item => item.id === this.equippedWeapon);
-            if (item) {
-                item.isEquipped = false;
-            }
-        }
-        let item = this.inventory.find(item => item.id === itemId);
-        if (item) {
-            if (item.type === ItemType.Weapon && item.slot === ItemSlot.MainHand) {
-                this.equippedWeapon = item.id;
-                this.updateDamageFromItem(item as Weapon, false);
-                item.isEquipped = true;
-            }
-            else {
-                throw new Error("Item is not a weapon");
-            }
-        }
-        else {
-            throw new Error("Item not found");
-        }
+        this.equippedWeapon = this.swapWeapon(this.equippedWeapon, itemId, false);
+        this.applyEquipmentBonuses();
     }
 
     equipOffhand(itemId: string): void {
-        if (this.equippedOffhand) {
-            let item = this.inventory.find(item => item.id === this.equippedOffhand);
-            if (item) {
-                item.isEquipped = false;
-            }
-        }
-        let item = this.inventory.find(item => item.id === itemId);
-        if (item) {
-            if (item.type === ItemType.Weapon && item.slot === ItemSlot.OffHand) {
-                this.equippedOffhand = item.id;
-                this.updateDamageFromItem(item as Weapon, true);
-                item.isEquipped = true;
-            }
-            else {
-                throw new Error("Item is not a weapon");
-            }
-        }
-        else {
-            throw new Error("Item not found");
-        }
+        this.equippedOffhand = this.swapWeapon(this.equippedOffhand, itemId, true);
+        this.applyEquipmentBonuses();
     }
 
     equipNeck(itemId: string): void {
-        if (this.equippedNeck) {
-            let item = this.inventory.find(item => item.id === this.equippedNeck);
-            if (item) {
-                item.isEquipped = false;
-            }
-        }
-        let item = this.inventory.find(item => item.id === itemId);
-        if (item) {
-            if (item.type === ItemType.Accessory && item.slot === ItemSlot.Neck) {
-                this.equippedNeck = item.id;
-                this.updateAttributesFromAccessorie(item as Accessory);
-                item.isEquipped = true;
-            }
-            else {
-                throw new Error("Item is not a neck accessory");
-            }
-        }
-        else {
-            throw new Error("Item not found");
-        }
+        this.equippedNeck = this.swapAccessory(this.equippedNeck, itemId, ItemSlot.Neck);
+        this.applyEquipmentBonuses();
     }
 
     equipRing(itemId: string): void {
-        if (this.equppedRing) {
-            let item = this.inventory.find(item => item.id === this.equppedRing);
-            if (item) {
-                item.isEquipped = false;
-            }
-        }
-        let item = this.inventory.find(item => item.id === itemId);
-        if (item) {
-            if (item.type === ItemType.Accessory && item.slot === ItemSlot.Ring) {
-                this.equppedRing = item.id;
-                this.updateAttributesFromAccessorie(item as Accessory);
-                item.isEquipped = true;
-            }
-            else {
-                throw new Error("Item is not a ring accessory");
-            }
-        }
-        else {
+        this.equippedRing = this.swapAccessory(this.equippedRing, itemId, ItemSlot.Ring);
+        this.applyEquipmentBonuses();
+    }
+
+    addItemToInventory(item: Item): void {
+        this.inventory.push(item);
+    }
+
+    checkIfItemIsInInventory(item: Item): boolean {
+        return this.inventory.includes(item);
+    }
+
+    getAttributes(): Attribute[] {
+        return [
+            this.strength,
+            this.constitution,
+            this.intelligence,
+            this.charisma,
+            this.knowledge,
+            this.faith,
+            this.craftsmanship,
+        ];
+    }
+
+    private swapArmor(currentItemId: string, newItemId: string, slot: ItemSlot): string {
+        this.unequip(currentItemId);
+        const item = this.findInventoryItem(newItemId);
+
+        if (!item) {
             throw new Error("Item not found");
+        }
+
+        if (item.type !== ItemType.Armor || item.slot !== slot) {
+            throw new Error("Item is not valid armor for this slot");
+        }
+
+        item.isEquipped = true;
+        return item.id;
+    }
+
+    private swapWeapon(currentItemId: string, newItemId: string, isOffHand: boolean): string {
+        this.unequip(currentItemId);
+        const item = this.findInventoryItem(newItemId);
+
+        if (!item) {
+            throw new Error("Item not found");
+        }
+
+        if (item.type !== ItemType.Weapon) {
+            throw new Error("Item is not a weapon");
+        }
+
+        if (isOffHand && item.slot !== ItemSlot.OffHand) {
+            throw new Error("Weapon is not an off-hand weapon");
+        }
+
+        if (!isOffHand && item.slot !== ItemSlot.MainHand) {
+            throw new Error("Weapon is not a main-hand weapon");
+        }
+
+        item.isEquipped = true;
+        return item.id;
+    }
+
+    private swapAccessory(currentItemId: string, newItemId: string, slot: ItemSlot): string {
+        this.unequip(currentItemId);
+        const item = this.findInventoryItem(newItemId);
+
+        if (!item) {
+            throw new Error("Item not found");
+        }
+
+        if (item.type !== ItemType.Accessory || item.slot !== slot) {
+            throw new Error("Item is not a valid accessory for this slot");
+        }
+
+        item.isEquipped = true;
+        return item.id;
+    }
+
+    private unequip(itemId?: string): void {
+        if (!itemId) {
+            return;
+        }
+
+        const item = this.findInventoryItem(itemId);
+        if (item) {
+            item.isEquipped = false;
         }
     }
 
-    updateArmorFromItem(armor: Armor): void {
+    private findInventoryItem(itemId: string): Item | undefined {
+        return this.inventory.find(item => item.id === itemId);
+    }
+
+    private applyEquipmentBonuses(): void {
+        this.inventory.forEach(item => {
+            item.isEquipped = false;
+        });
+
+        this.armor = this.baseArmor;
+        this.damage = this.baseDamage;
+        this.resetAttributesToBase();
+
+        this.applyArmorFromSlot(this.equippedHead, ItemSlot.Head);
+        this.applyArmorFromSlot(this.equippedChest, ItemSlot.Chest);
+        this.applyArmorFromSlot(this.equippedLegs, ItemSlot.Legs);
+        this.applyArmorFromSlot(this.equippedFeet, ItemSlot.Feet);
+
+        this.applyWeaponFromSlot(this.equippedWeapon, false);
+        this.applyWeaponFromSlot(this.equippedOffhand, true);
+
+        this.applyAccessoryFromSlot(this.equippedNeck, ItemSlot.Neck);
+        this.applyAccessoryFromSlot(this.equippedRing, ItemSlot.Ring);
+    }
+
+    private applyArmorFromSlot(itemId: string | undefined, slot: ItemSlot): void {
+        if (!itemId) {
+            return;
+        }
+
+        const item = this.findInventoryItem(itemId);
+        if (!item || item.type !== ItemType.Armor || item.slot !== slot) {
+            return;
+        }
+
+        item.isEquipped = true;
+        this.updateArmorFromItem(item as Armor);
+    }
+
+    private applyWeaponFromSlot(itemId: string | undefined, isOffHand: boolean): void {
+        if (!itemId) {
+            return;
+        }
+
+        const item = this.findInventoryItem(itemId);
+        if (!item || item.type !== ItemType.Weapon) {
+            return;
+        }
+
+        if (isOffHand && item.slot !== ItemSlot.OffHand) {
+            return;
+        }
+
+        if (!isOffHand && item.slot !== ItemSlot.MainHand) {
+            return;
+        }
+
+        item.isEquipped = true;
+        this.updateDamageFromItem(item as Weapon, isOffHand);
+    }
+
+    private applyAccessoryFromSlot(itemId: string | undefined, slot: ItemSlot): void {
+        if (!itemId) {
+            return;
+        }
+
+        const item = this.findInventoryItem(itemId);
+        if (!item || item.type !== ItemType.Accessory || item.slot !== slot) {
+            return;
+        }
+
+        item.isEquipped = true;
+        this.updateAttributesFromAccessory(item as Accessory);
+    }
+
+    private updateArmorFromItem(armor: Armor): void {
         this.armor += armor.armor;
     }
 
-    updateDamageFromItem(weapon: Weapon, isOffHand: boolean): void {
+    private updateDamageFromItem(weapon: Weapon, isOffHand: boolean): void {
         if (isOffHand) {
             this.damage += weapon.damage / 2;
-        }
-        else {
+        } else {
             this.damage += weapon.damage;
         }
     }
 
-    updateAttributesFromAccessorie(accessory: Accessory): void {
+    private updateAttributesFromAccessory(accessory: Accessory): void {
         switch (accessory.atributeToBoost) {
             case AttributeEnum.Strength:
                 this.strength.value += accessory.atributeBonus;
@@ -457,19 +470,29 @@ class Player {
         }
     }
 
-    addItemToInventory(item: Item): void {
-        this.inventory.push(item);
+    private captureBaseAttributes(): void {
+        this.baseAttributes = {
+            [AttributeEnum.Strength]: this.strength.value,
+            [AttributeEnum.Constitution]: this.constitution.value,
+            [AttributeEnum.Intelligence]: this.intelligence.value,
+            [AttributeEnum.Charisma]: this.charisma.value,
+            [AttributeEnum.Knowledge]: this.knowledge.value,
+            [AttributeEnum.Faith]: this.faith.value,
+            [AttributeEnum.Craftsmanship]: this.craftsmanship.value,
+        };
     }
 
-    checkIfItemIsInInventory(item: Item): boolean {
-        return this.inventory.includes(item);
+    private resetAttributesToBase(): void {
+        this.strength.value = this.baseAttributes[AttributeEnum.Strength];
+        this.constitution.value = this.baseAttributes[AttributeEnum.Constitution];
+        this.intelligence.value = this.baseAttributes[AttributeEnum.Intelligence];
+        this.charisma.value = this.baseAttributes[AttributeEnum.Charisma];
+        this.knowledge.value = this.baseAttributes[AttributeEnum.Knowledge];
+        this.faith.value = this.baseAttributes[AttributeEnum.Faith];
+        this.craftsmanship.value = this.baseAttributes[AttributeEnum.Craftsmanship];
     }
 
-    getAttributes(): Attribute[] {
-        return [this.strength, this.constitution, this.intelligence, this.charisma, this.knowledge, this.faith, this.craftsmanship];
-    }
-
-    addBonusToAttributesByBackgroudn(): void {
+    private applyBackgroundBonuses(): void {
         switch (this.background) {
             case PlayerBackgroundEnum.Traveler:
                 this.intelligence.value += 2;
@@ -505,6 +528,14 @@ class Player {
                 break;
         }
     }
+
+    private calculateMitigatedDamage(rawDamage: number, armorPenetration: number, armor: number): number {
+        const effectiveArmor = Math.max(0, armor * (1 - armorPenetration));
+        const mitigationRatio = Math.min(effectiveArmor / 100, 0.9);
+        const mitigated = rawDamage * (1 - mitigationRatio);
+        return Math.max(0, mitigated);
+    }
 }
 
 export { Player };
+export type { PlayerAbilityOutcome };

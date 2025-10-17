@@ -1,6 +1,6 @@
 import { Guid } from "../helpers/guid";
 import { Random } from "../helpers/random";
-import { Attribute, AttributeEnum } from "./attributes";
+import { AttributeEnum } from "./attributes";
 import { WorldTierEnum } from "./worldTier";
 
 type DropRates = {
@@ -154,10 +154,6 @@ class Accessory extends Item {
 class ItemGenerator {
    
     generateItem(worldTier: WorldTierEnum, itemSlot?: ItemSlot, itemType?: ItemType, armorType?: ArmorType, weaponType?: WeaponType): Item {
-        let damageMultiplier = 1;
-        let armorMultiplier = 1;
-        let attributeBonusMultiplier = 1;
-
         let dropRates: DropRates = {
             Common: 0.001,
             Uncommon: 0.001,
@@ -170,9 +166,6 @@ class ItemGenerator {
 
         switch (worldTier) {
             case WorldTierEnum.Base:
-                damageMultiplier = 1;
-                armorMultiplier = 1;
-                attributeBonusMultiplier = 1;
                 dropRates.Common = 0.8;
                 dropRates.Uncommon = 0.8;
                 dropRates.Rare = 0.3;
@@ -182,9 +175,6 @@ class ItemGenerator {
                 dropRates.Artifact = 0.000001;
                 break;
             case WorldTierEnum.Advanced:
-                damageMultiplier = 1.5;
-                armorMultiplier = 1.5;
-                attributeBonusMultiplier = 1.5;
                 dropRates.Common = 0.4;
                 dropRates.Uncommon = 0.6;
                 dropRates.Rare = 0.6;
@@ -194,9 +184,6 @@ class ItemGenerator {
                 dropRates.Artifact = 0.000001;
                 break;
             case WorldTierEnum.Legendary:
-                damageMultiplier = 2;
-                armorMultiplier = 2;
-                attributeBonusMultiplier = 2;
                 dropRates.Common = 0.2;
                 dropRates.Uncommon = 0.2;
                 dropRates.Rare = 0.3;
@@ -206,9 +193,6 @@ class ItemGenerator {
                 dropRates.Artifact = 0.000001;
                 break;
             case WorldTierEnum.Mythical:
-                damageMultiplier = 2.5;
-                armorMultiplier = 2.5;
-                attributeBonusMultiplier = 2.5;
                 dropRates.Common = 0.1;
                 dropRates.Uncommon = 0.1;
                 dropRates.Rare = 0.2;
@@ -218,9 +202,6 @@ class ItemGenerator {
                 dropRates.Artifact = 0.000001;
                 break;
             case WorldTierEnum.Demonic:
-                damageMultiplier = 3;
-                armorMultiplier = 3;
-                attributeBonusMultiplier = 3;
                 dropRates.Common = 0.1;
                 dropRates.Uncommon = 0.1;
                 dropRates.Rare = 0.2;
@@ -230,9 +211,6 @@ class ItemGenerator {
                 dropRates.Artifact = 0.000001;
                 break;
             case WorldTierEnum.Hellish:
-                damageMultiplier = 3.5;
-                armorMultiplier = 3.5;
-                attributeBonusMultiplier = 3.5;
                 dropRates.Common = 0.1;
                 dropRates.Uncommon = 0.1;
                 dropRates.Rare = 0.2;
@@ -242,9 +220,6 @@ class ItemGenerator {
                 dropRates.Artifact = 0.1;
                 break;
             case WorldTierEnum.Godlike:
-                damageMultiplier = 4;
-                armorMultiplier = 4;
-                attributeBonusMultiplier = 4;
                 dropRates.Common = 0.1;
                 dropRates.Uncommon = 0.1;
                 dropRates.Rare = 0.2;

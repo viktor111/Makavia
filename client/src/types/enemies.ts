@@ -1,5 +1,5 @@
 import { Guid } from "../helpers/guid";
-import { Ability, Fireball, Heal, Slash, Stab } from "./abilities";
+import { Ability, AbilityResolution, Fireball, Heal, Slash, Stab } from "./abilities";
 import { Item, ItemGenerator } from "./items";
 import { Player } from "./player";
 import { WorldTierEnum } from "./worldTier";
@@ -8,6 +8,7 @@ class Enemy {
     id: string;
     name: string;
     health: number;
+    maxHealth: number;
     damage: number;
     abilities: Ability[];
     image: string;
@@ -16,7 +17,8 @@ class Enemy {
     dropTable: Item[];
     xpDrop: number;
 
-    constructor(id: string,
+    constructor(
+        id: string,
         name: string,
         health: number,
         damage: number,
@@ -26,10 +28,11 @@ class Enemy {
         armor: number,
         dropTable: Item[],
         xpDrop: number
-        ) {
+    ) {
         this.id = id;
         this.name = name;
         this.health = health;
+        this.maxHealth = health;
         this.damage = damage;
         this.abilities = abilities;
         this.image = image;
@@ -66,28 +69,49 @@ class Enemy {
                 break;
         }
 
-        this.health = Math.round(this.health * multiplier);
+        this.maxHealth = Math.round(this.maxHealth * multiplier);
+        this.health = this.maxHealth;
         this.damage = Math.round(this.damage * multiplier);
     }
 
-    takeDamage(damage: number) {
-        this.health -= damage - (this.armor / 2);
+    takeDamage(rawDamage: number, armorPenetration: number = 0): number {
+        const damageTaken = this.calculateMitigatedDamage(rawDamage, armorPenetration);
+        this.health = Math.max(0, this.health - damageTaken);
+        return damageTaken;
+    }
+
+    heal(amount: number): number {
+        if (amount <= 0) {
+            return 0;
+        }
+        const previous = this.health;
+        this.health = Math.min(this.maxHealth, this.health + amount);
+        return this.health - previous;
+    }
+
+    adjustArmor(amount: number): void {
+        this.armor = Math.max(0, this.armor + amount);
     }
 
     isDead() {
         return this.health <= 0;
     }
 
-    useAbility(player: Player): { ability: Ability, abilityUseResult: number }{
-        let ability = this.abilities[Math.floor(Math.random() * this.abilities.length)];
-        let abilityUseResult = ability.useOnPlayer(player, this);
-
-        return { ability, abilityUseResult };
+    useAbility(player: Player): AbilityResolution {
+        const ability = this.abilities[Math.floor(Math.random() * this.abilities.length)];
+        const resolution = ability.useOnPlayer(player, this);
+        return resolution;
     }
 
     dropItem(): Item {
         let item = this.dropTable[Math.floor(Math.random() * this.dropTable.length)];
         return item;
+    }
+    private calculateMitigatedDamage(rawDamage: number, armorPenetration: number): number {
+        const effectiveArmor = Math.max(0, this.armor * (1 - armorPenetration));
+        const mitigationRatio = Math.min(effectiveArmor / 100, 0.9);
+        const mitigated = rawDamage * (1 - mitigationRatio);
+        return Math.max(0, mitigated);
     }
 }
 
@@ -262,14 +286,14 @@ class EnemyGenerator {
         let enemy = new Enemy(
             guid,
             randomName,
-            health * healthMultiplier,
+            Math.round(health * healthMultiplier),
             damage * damageMultiplier,
             abilities,
             image,
             false,
             armor * armorMultiplier,
             [item1, item2, item3, item4, item5],
-            xpDrop * xpMultiplier
+            Math.round(xpDrop * xpMultiplier)
         );
 
         return enemy;

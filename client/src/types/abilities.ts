@@ -5,10 +5,28 @@ import { Enemy } from "./enemies";
 enum AbilityType {
     Attack,
     Defence,
-    Belssing,
+    Blessing,
     Curse,
     Special,
     Passive,
+}
+
+enum AbilityEffectType {
+    Damage = "damage",
+    Heal = "heal",
+    Buff = "buff",
+}
+
+type AbilityTarget = "player" | "enemy";
+
+interface AbilityResolution {
+    name: string;
+    abilityType: AbilityType;
+    effect: AbilityEffectType;
+    amount: number;
+    target: AbilityTarget;
+    duration?: number;
+    stat?: "armor";
 }
 
 abstract class Ability {
@@ -21,7 +39,8 @@ abstract class Ability {
     image: string;
     playerClass: PlayerClassEnum;
 
-    constructor(name: string,
+    constructor(
+        name: string,
         type: AbilityType,
         description: string,
         playerLevelRequired: number,
@@ -40,142 +59,198 @@ abstract class Ability {
         this.playerClass = playerClass;
     }
 
-    learn() {
+    learn(): void {
         this.isUnlocked = true;
     }
 
-    abstract use(player: Player, enemy: Enemy): number;
-    abstract useOnPlayer(player: Player, enemy: Enemy): number;
+    protected createResolution(
+        effect: AbilityEffectType,
+        amount: number,
+        target: AbilityTarget,
+        duration?: number,
+        stat?: "armor"
+    ): AbilityResolution {
+        return {
+            name: this.name,
+            abilityType: this.type,
+            effect,
+            amount,
+            target,
+            duration,
+            stat,
+        };
+    }
+
+    abstract use(player: Player, enemy: Enemy): AbilityResolution;
+    abstract useOnPlayer(player: Player, enemy: Enemy): AbilityResolution;
 }
 
 class Slash extends Ability {
-
     constructor() {
-        super("Slash", AbilityType.Attack, "Slash your enemy with your sword", 1, 1, "slash.png", false, PlayerClassEnum.Warrior);
+        super(
+            "Slash",
+            AbilityType.Attack,
+            "Slash your enemy with your sword",
+            1,
+            1,
+            "slash.png",
+            false,
+            PlayerClassEnum.Warrior
+        );
     }
 
-    use(player: Player, enemy: Enemy) {
-        let damage = player.strength.value * 2;
-        let damageAfterArmor = damage * (1 - enemy.armor / 100);
-        enemy.health -= damageAfterArmor;
-        return damageAfterArmor;
+    use(player: Player, enemy: Enemy): AbilityResolution {
+        const rawDamage = player.damage + player.strength.value * 2;
+        const dealt = enemy.takeDamage(rawDamage);
+        return this.createResolution(AbilityEffectType.Damage, dealt, "enemy");
     }
 
-    useOnPlayer(player: Player, enemy: Enemy) {
-        let damage = enemy.damage * 2;
-        let damageAfterArmor = damage * (1 - player.armor / 100);
-        player.health -= damageAfterArmor;
-        return damageAfterArmor;
+    useOnPlayer(player: Player, enemy: Enemy): AbilityResolution {
+        const rawDamage = enemy.damage * 2;
+        const dealt = player.takeDamage(rawDamage);
+        return this.createResolution(AbilityEffectType.Damage, dealt, "player");
     }
 }
 
 class Stab extends Ability {
-
     constructor() {
-        super("Stab", AbilityType.Attack, "Stab your enemy with your dagger", 1, 1, "stab.png", false, PlayerClassEnum.Rogue);
+        super(
+            "Stab",
+            AbilityType.Attack,
+            "Stab your enemy with your dagger",
+            1,
+            1,
+            "stab.png",
+            false,
+            PlayerClassEnum.Rogue
+        );
     }
 
-    use(player: Player, enemy: Enemy) {
-        let damage = player.strength.value * 2;
-        let damageAfterArmor = damage * (1 - enemy.armor / 100);
-        enemy.health -= damageAfterArmor;
-        return damageAfterArmor;
+    use(player: Player, enemy: Enemy): AbilityResolution {
+        const rawDamage = player.damage + player.strength.value * 1.5;
+        const dealt = enemy.takeDamage(rawDamage);
+        return this.createResolution(AbilityEffectType.Damage, dealt, "enemy");
     }
 
-    useOnPlayer(player: Player, enemy: Enemy) {
-        let damage = enemy.damage * 2;
-        let damageAfterArmor = damage * (1 - player.armor / 100);
-        player.health -= damageAfterArmor;
-        return damageAfterArmor;
+    useOnPlayer(player: Player, enemy: Enemy): AbilityResolution {
+        const rawDamage = enemy.damage * 2;
+        const dealt = player.takeDamage(rawDamage);
+        return this.createResolution(AbilityEffectType.Damage, dealt, "player");
     }
 }
 
 class Fireball extends Ability {
-
     constructor() {
-        super("Fireball", AbilityType.Attack, "Throw a fireball at your enemy", 1, 1, "fireball.png", false, PlayerClassEnum.Mage);
+        super(
+            "Fireball",
+            AbilityType.Attack,
+            "Throw a fireball at your enemy",
+            1,
+            1,
+            "fireball.png",
+            false,
+            PlayerClassEnum.Mage
+        );
     }
 
-    use(player: Player, enemy: Enemy) {
-        let damage = player.intelligence.value * 2;
-        let armorIgnored = enemy.armor * 0.5;
-        let effectiveArmor = enemy.armor - armorIgnored;
-        let damageAfterArmor = damage * (1 - effectiveArmor / 100);
-        enemy.health -= damageAfterArmor;
-        return damageAfterArmor;
+    use(player: Player, enemy: Enemy): AbilityResolution {
+        const rawDamage = player.intelligence.value * 2.5 + player.damage * 0.5;
+        const dealt = enemy.takeDamage(rawDamage, 0.5);
+        return this.createResolution(AbilityEffectType.Damage, dealt, "enemy");
     }
 
-    useOnPlayer(player: Player, enemy: Enemy) {
-        let damage = enemy.damage * 2;
-        let armorIgnored = player.armor * 0.5;
-        let effectiveArmor = player.armor - armorIgnored;
-        let damageAfterArmor = damage * (1 - effectiveArmor / 100);
-        player.health -= damageAfterArmor;
-        return damageAfterArmor;
+    useOnPlayer(player: Player, enemy: Enemy): AbilityResolution {
+        const rawDamage = enemy.damage * 2.2;
+        const dealt = player.takeDamage(rawDamage, 0.5);
+        return this.createResolution(AbilityEffectType.Damage, dealt, "player");
     }
 }
 
 class Heal extends Ability {
-
     constructor() {
-        super("Heal", AbilityType.Belssing, "Heal yourself", 2, 1, "heal.png", false, PlayerClassEnum.Mage);
+        super(
+            "Heal",
+            AbilityType.Blessing,
+            "Heal yourself",
+            2,
+            1,
+            "heal.png",
+            false,
+            PlayerClassEnum.Mage
+        );
     }
 
-    use(player: Player, enemy: Enemy) {
-        let heal = player.faith.value * 2;
-        player.health += heal;
-        return heal;
+    use(player: Player, enemy: Enemy): AbilityResolution {
+        const healed = player.heal(player.faith.value * 2);
+        return this.createResolution(AbilityEffectType.Heal, healed, "player");
     }
 
-    useOnPlayer(player: Player, enemy: Enemy) {
-        let heal = player.faith.value * 2;
-        enemy.health += heal;
-        return heal;
+    useOnPlayer(player: Player, enemy: Enemy): AbilityResolution {
+        const healed = enemy.heal(enemy.damage * 1.5);
+        return this.createResolution(AbilityEffectType.Heal, healed, "enemy");
     }
 }
 
 class Poison extends Ability {
-
     constructor() {
-        super("Poison", AbilityType.Curse, "Poison your enemy for 2 turns", 2, 1, "poison.png", false, PlayerClassEnum.Rogue);
+        super(
+            "Poison",
+            AbilityType.Curse,
+            "Poison your enemy for 2 turns",
+            2,
+            1,
+            "poison.png",
+            false,
+            PlayerClassEnum.Rogue
+        );
     }
 
-    use(player: Player, enemy: Enemy) {
-        let damage = player.faith.value * 2;
-        let armorIgnored = enemy.armor * 0.5;
-        let effectiveArmor = enemy.armor - armorIgnored;
-        let damageAfterArmor = damage * (1 - effectiveArmor / 100);
-        enemy.health -= damageAfterArmor;
-        return damageAfterArmor;
+    use(player: Player, enemy: Enemy): AbilityResolution {
+        const rawDamage = player.faith.value * 2.5;
+        const dealt = enemy.takeDamage(rawDamage, 0.25);
+        return this.createResolution(AbilityEffectType.Damage, dealt, "enemy");
     }
 
-    useOnPlayer(player: Player, enemy: Enemy) {
-        let damage = enemy.damage * 2;
-        let armorIgnored = player.armor * 0.5;
-        let effectiveArmor = player.armor - armorIgnored;
-        let damageAfterArmor = damage * (1 - effectiveArmor / 100);
-        player.health -= damageAfterArmor;
-        return damageAfterArmor;
+    useOnPlayer(player: Player, enemy: Enemy): AbilityResolution {
+        const rawDamage = enemy.damage * 1.8;
+        const dealt = player.takeDamage(rawDamage, 0.25);
+        return this.createResolution(AbilityEffectType.Damage, dealt, "player");
     }
 }
 
 class ArmorOfLight extends Ability {
-
     constructor() {
-        super("Armor of Light", AbilityType.Belssing, "Boost armor for 2 tuns", 2, 1, "armor_of_light.png", false, PlayerClassEnum.Warrior);
+        super(
+            "Armor of Light",
+            AbilityType.Blessing,
+            "Boost armor for 2 turns",
+            2,
+            1,
+            "armor_of_light.png",
+            false,
+            PlayerClassEnum.Warrior
+        );
     }
 
-    use(player: Player, enemy: Enemy) {
-        const armorGain = 10;
-        player.armor += armorGain;
-        return armorGain;
+    use(player: Player, enemy: Enemy): AbilityResolution {
+        return this.createResolution(AbilityEffectType.Buff, 10, "player", 2, "armor");
     }
 
-    useOnPlayer(player: Player, enemy: Enemy) {
-        const armorGain = 10;
-        enemy.armor += armorGain;
-        return armorGain;
+    useOnPlayer(player: Player, enemy: Enemy): AbilityResolution {
+        return this.createResolution(AbilityEffectType.Buff, 10, "enemy", 2, "armor");
     }
 }
 
-export { AbilityType, Ability, Slash, Stab, Fireball, Heal, Poison, ArmorOfLight };
+export {
+    AbilityType,
+    Ability,
+    AbilityEffectType,
+    Slash,
+    Stab,
+    Fireball,
+    Heal,
+    Poison,
+    ArmorOfLight,
+};
+
+export type { AbilityResolution, AbilityTarget };

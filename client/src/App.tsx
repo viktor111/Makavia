@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import './App.css';
 import {
   Link,
@@ -11,19 +11,19 @@ import { useGameContext } from './context/game';
 import { PlayerTestData } from './testData/playerTestData';
 import Character from './routes/character';
 import Fight from './routes/fight';
-import { Enemy, EnemyGenerator } from './types/enemies';
+import { EnemyGenerator } from './types/enemies';
 
 function App() {
-  const { player, setPlayer, currentEnemy, setCurrentEnemy } = useGameContext();
+  const { setPlayer, setCurrentEnemy } = useGameContext();
   
   useEffect(() => {
-    const enemyGenerator = new EnemyGenerator;
+    const enemyGenerator = new EnemyGenerator();
     const player = PlayerTestData.generate();
     const enemy = enemyGenerator.generateEnemies(player.worldTier, 1)[0];
     console.log(enemy);
     setCurrentEnemy(enemy);
     setPlayer(player);
-  }, []);
+  }, [setCurrentEnemy, setPlayer]);
 
   return (
     <>

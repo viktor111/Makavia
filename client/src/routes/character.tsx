@@ -2,7 +2,7 @@ import React from 'react';
 import { useGameContext } from '../context/game';
 
 const Character: React.FC = () => {
-    const { player, setPlayer } = useGameContext();
+    const { player } = useGameContext();
 
     return (
         <div>

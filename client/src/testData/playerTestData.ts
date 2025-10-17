@@ -1,9 +1,9 @@
 import { Ability, ArmorOfLight, Heal, Slash } from "../types/abilities";
 import { Attribute, AttributeEnum } from "../types/attributes";
 import { PlayerClassEnum } from "../types/classes";
-import { ArmorType, Item, ItemGenerator, ItemSlot, ItemType } from "../types/items";
+import { Item, ItemGenerator, ItemSlot, ItemType } from "../types/items";
 import { Player } from "../types/player";
-import { PlayerBackground, PlayerBackgroundEnum } from "../types/playerBackground";
+import { PlayerBackgroundEnum } from "../types/playerBackground";
 import { WorldTierEnum } from "../types/worldTier";
 
 class PlayerTestData {
@@ -12,13 +12,13 @@ class PlayerTestData {
         const age: number = 20;
         const background: PlayerBackgroundEnum = PlayerBackgroundEnum.Noble;
         const playerClass: PlayerClassEnum = PlayerClassEnum.Warrior;
-        const worldTier: number = WorldTierEnum.Hellish;
+        const worldTier: WorldTierEnum = WorldTierEnum.Hellish;
         const gold: number = 100;
-        const expiriance: number = 10;
+        const experience: number = 10;
         const level: number = 2;
         const skillPoints: number = 2;
 
-        const health: number = 1000;
+        const health: number = 100;
         const maxHealth: number = 100;
         const mana: number = 100;
         const maxMana: number = 100;
@@ -49,7 +49,7 @@ class PlayerTestData {
         const equippedWeapon: string = mainHandPiece.id;
         const equippedOffhand: string = offHandPiece.id;
         const equippedNeck: string = neckPiece.id;
-        const equppedRing: string = ringPiece.id;
+        const equippedRing: string = ringPiece.id;
 
         const strength: Attribute = new Attribute(AttributeEnum.Strength, 10);
         const constitution: Attribute = new Attribute(AttributeEnum.Constitution, 10);
@@ -90,10 +90,10 @@ class PlayerTestData {
             equippedWeapon,
             equippedOffhand,
             equippedNeck,
-            equppedRing,
+            equippedRing,
             learnedAbilities,
             level,
-            expiriance,
+            experience,
             gold,
             skillPoints,
             worldTier,
