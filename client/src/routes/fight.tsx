@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Button from '../components/button';
 import { useGameContext } from '../context/game';
 import { BattleEngine, BattleLogEntry } from '../types/battleEngine';
@@ -7,13 +8,23 @@ import { PlayerClassEnum } from '../types/classes';
 import { Turn, TurnType } from '../types/turn';
 
 const Fight: React.FC = () => {
-    const { player, currentEnemy } = useGameContext();
+    const navigate = useNavigate();
+    const {
+        player,
+        currentEnemy,
+        isInStoryCombat,
+        setIsInStoryCombat,
+        storyCombatWinNodeId,
+        storyCombatLoseNodeId,
+    } = useGameContext();
     const engineRef = useRef<BattleEngine | null>(null);
     const enemyActionTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
     const [turn, setTurn] = useState<Turn | null>(null);
     const [logs, setLogs] = useState<BattleLogEntry[]>([]);
     const [isEnemyActing, setIsEnemyActing] = useState(false);
     const logContainerRef = useRef<HTMLDivElement | null>(null);
+    const [battleOutcome, setBattleOutcome] = useState<'pending' | 'victory' | 'defeat'>('pending');
+
 
     useEffect(() => {
         if (player && currentEnemy) {
@@ -57,6 +68,8 @@ const Fight: React.FC = () => {
         setTurn(new Turn(engine.getTurn().count, engine.getTurn().type));
 
         if (result.battleEnded) {
+            // Track battle outcome for story mode integration
+            setBattleOutcome(currentEnemy.isDead() ? 'victory' : 'defeat');
             return;
         }
 
@@ -67,6 +80,11 @@ const Fight: React.FC = () => {
             setTurn(new Turn(engine.getTurn().count, engine.getTurn().type));
             setIsEnemyActing(false);
             enemyActionTimeout.current = null;
+
+            // Track defeat if player dies
+            if (enemyResult.battleEnded && player.isDead()) {
+                setBattleOutcome('defeat');
+            }
         }, 800);
     };
 
@@ -154,7 +172,7 @@ const Fight: React.FC = () => {
                 {isEnemyActing && <em style={{ color: '#8d6f55' }}>{currentEnemy.name} is preparing an action…</em>}
             </section>
 
-        <section style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <section style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 <h2>Battle Log</h2>
                 <div
                     ref={logContainerRef}
@@ -175,9 +193,31 @@ const Fight: React.FC = () => {
             </section>
 
             {turn.type === TurnType.End && (
-                <section style={{ padding: '1rem', borderRadius: '8px', backgroundColor: '#1b3a4b', color: '#f6f7f8' }}>
-                    <h2>Fight concluded</h2>
+                <section style={{ padding: '1.5rem', borderRadius: '12px', backgroundColor: battleOutcome === 'victory' ? '#1b4b3a' : '#4b1b1b', color: '#f6f7f8', textAlign: 'center' }}>
+                    <h2>{battleOutcome === 'victory' ? '🏆 Victory!' : '💀 Defeat'}</h2>
                     <p>{player.isDead() ? `${currentEnemy.name} is victorious.` : `${player.name} stands triumphant.`}</p>
+
+                    {isInStoryCombat && (
+                        <button
+                            onClick={() => {
+                                setIsInStoryCombat(false);
+                                navigate('/story');
+                            }}
+                            style={{
+                                marginTop: '1rem',
+                                backgroundColor: '#ffd700',
+                                color: '#1a1a2e',
+                                border: 'none',
+                                borderRadius: '8px',
+                                padding: '1rem 2rem',
+                                cursor: 'pointer',
+                                fontSize: '1.1rem',
+                                fontWeight: '600',
+                            }}
+                        >
+                            Return to Story →
+                        </button>
+                    )}
                 </section>
             )}
         </div>
