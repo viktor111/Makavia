@@ -6,7 +6,7 @@
 import { Player } from "./player";
 import { Chapter, StoryNode, ChoiceCondition, ChoiceEffect, StoryChoice } from "./story";
 import { clampMorality, getMoralityTier, MoralityTier } from "./morality";
-import { NPCRelationship, getRelationshipTier, clampAffinity, RelationshipTier } from "./npc";
+import { NPCRelationship, getRelationshipTier, clampAffinity } from "./npc";
 
 interface StoryState {
     moralityScore: number;

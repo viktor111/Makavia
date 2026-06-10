@@ -28,7 +28,11 @@ interface GameContextProps {
     storyCombatWinNodeId: string | null;
     storyCombatLoseNodeId: string | null;
     setStoryCombatNodes: (winNodeId: string, loseNodeId: string | null) => void;
+    storyCombatResult: StoryCombatResult;
+    setStoryCombatResult: (result: StoryCombatResult) => void;
 }
+
+type StoryCombatResult = 'victory' | 'defeat' | null;
 
 export const GameContext = createContext<GameContextProps>({
     player: null,
@@ -51,6 +55,8 @@ export const GameContext = createContext<GameContextProps>({
     storyCombatWinNodeId: null,
     storyCombatLoseNodeId: null,
     setStoryCombatNodes: () => { },
+    storyCombatResult: null,
+    setStoryCombatResult: () => { },
 });
 
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -65,6 +71,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [isInStoryCombat, setIsInStoryCombat] = useState(false);
     const [storyCombatWinNodeId, setStoryCombatWinNodeId] = useState<string | null>(null);
     const [storyCombatLoseNodeId, setStoryCombatLoseNodeId] = useState<string | null>(null);
+    const [storyCombatResult, setStoryCombatResult] = useState<StoryCombatResult>(null);
 
     const initializeStoryEngine = useCallback((): StoryEngine => {
         if (!storyEngineRef.current) {
@@ -135,6 +142,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             storyCombatWinNodeId,
             storyCombatLoseNodeId,
             setStoryCombatNodes,
+            storyCombatResult,
+            setStoryCombatResult,
         }}>
             {children}
         </GameContext.Provider>

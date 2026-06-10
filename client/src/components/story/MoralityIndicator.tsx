@@ -22,24 +22,13 @@ const MoralityIndicator: React.FC<MoralityIndicatorProps> = ({ score, showLabel 
 
     if (compact) {
         return (
-            <div
-                style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                }}
-            >
-                <div
-                    style={{
-                        width: '12px',
-                        height: '12px',
-                        borderRadius: '50%',
-                        backgroundColor: color,
-                        boxShadow: `0 0 8px ${color}`,
-                    }}
+            <div className="mk-morality mk-morality--compact">
+                <span
+                    className="mk-morality__gem"
+                    style={{ backgroundColor: color, boxShadow: `0 0 8px ${color}` }}
                 />
                 {showLabel && (
-                    <span style={{ color: color, fontWeight: '600', fontSize: '0.9rem' }}>
+                    <span className="mk-label" style={{ color, letterSpacing: '0.14em' }}>
                         {label}
                     </span>
                 )}
@@ -48,65 +37,27 @@ const MoralityIndicator: React.FC<MoralityIndicatorProps> = ({ score, showLabel 
     }
 
     return (
-        <div
-            style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.5rem',
-                padding: '1rem',
-                backgroundColor: '#1a1a2e',
-                borderRadius: '8px',
-                minWidth: '200px',
-            }}
-        >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ color: '#888', fontSize: '0.85rem' }}>Alignment</span>
-                <span style={{ color: color, fontWeight: '600' }}>{label}</span>
+        <div className="mk-morality">
+            <div className="mk-morality__head">
+                <span className="mk-label">Alignment</span>
+                <span className="mk-label" style={{ color, letterSpacing: '0.14em' }}>{label}</span>
             </div>
 
-            <div
-                style={{
-                    width: '100%',
-                    height: '8px',
-                    backgroundColor: '#2a2a4e',
-                    borderRadius: '4px',
-                    position: 'relative',
-                    overflow: 'hidden',
-                }}
-            >
-                {/* Gradient background showing evil to good spectrum */}
+            <div className="mk-morality__track">
+                <div className="mk-morality__spectrum" />
                 <div
+                    className="mk-morality__needle"
                     style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        background: 'linear-gradient(90deg, #8b0000, #dc143c, #888888, #4169e1, #ffd700)',
-                        opacity: 0.3,
-                    }}
-                />
-
-                {/* Current position indicator */}
-                <div
-                    style={{
-                        position: 'absolute',
-                        top: '-2px',
-                        left: `calc(${percentage}% - 6px)`,
-                        width: '12px',
-                        height: '12px',
-                        borderRadius: '50%',
+                        left: `${percentage}%`,
                         backgroundColor: color,
-                        border: '2px solid #fff',
                         boxShadow: `0 0 8px ${color}`,
-                        transition: 'left 0.3s ease',
                     }}
                 />
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#666' }}>
+            <div className="mk-morality__ends">
                 <span>Evil</span>
-                <span>{score > 0 ? '+' : ''}{score}</span>
+                <span style={{ color: 'var(--parchment-dim)' }}>{score > 0 ? '+' : ''}{score}</span>
                 <span>Good</span>
             </div>
         </div>

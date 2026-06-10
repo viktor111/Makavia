@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import './App.css';
 import {
   Link,
+  NavLink,
   Route,
   Routes,
 } from "react-router-dom";
@@ -23,7 +24,6 @@ function App() {
       const enemyGenerator = new EnemyGenerator();
       const newPlayer = PlayerTestData.generate();
       const enemy = enemyGenerator.generateEnemies(newPlayer.worldTier, 1)[0];
-      console.log(enemy);
       setCurrentEnemy(enemy);
       setPlayer(newPlayer);
     }
@@ -31,17 +31,14 @@ function App() {
 
   return (
     <>
-      <nav style={{
-        display: 'flex',
-        gap: '1rem',
-        padding: '1rem',
-        backgroundColor: '#1a1a2e',
-        borderBottom: '1px solid #2a2a4e',
-      }}>
-        <Link to="/" style={{ color: '#e0e6ed', textDecoration: 'none' }}>Home</Link>
-        <Link to="/story" style={{ color: '#ffd700', textDecoration: 'none', fontWeight: 'bold' }}>📖 Story Mode</Link>
-        <Link to="/fight" style={{ color: '#e0e6ed', textDecoration: 'none' }}>⚔️ Dungeon</Link>
-        <Link to="/character" style={{ color: '#e0e6ed', textDecoration: 'none' }}>👤 Character</Link>
+      <nav className="mk-nav">
+        <Link to="/" className="mk-brand">Makavia</Link>
+        <div className="mk-nav__links">
+          <NavLink to="/" end className="mk-nav__link">Home</NavLink>
+          <NavLink to="/story" className="mk-nav__link">Story Mode</NavLink>
+          <NavLink to="/fight" className="mk-nav__link">Dungeon</NavLink>
+          <NavLink to="/character" className="mk-nav__link">Character</NavLink>
+        </div>
       </nav>
 
       <Routes>

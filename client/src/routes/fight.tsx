@@ -6,16 +6,16 @@ import { BattleEngine, BattleLogEntry } from '../types/battleEngine';
 import { AbilityType } from '../types/abilities';
 import { PlayerClassEnum } from '../types/classes';
 import { Turn, TurnType } from '../types/turn';
+import { EnemyGenerator } from '../types/enemies';
 
 const Fight: React.FC = () => {
     const navigate = useNavigate();
     const {
         player,
         currentEnemy,
+        setCurrentEnemy,
         isInStoryCombat,
-        setIsInStoryCombat,
-        storyCombatWinNodeId,
-        storyCombatLoseNodeId,
+        setStoryCombatResult,
     } = useGameContext();
     const engineRef = useRef<BattleEngine | null>(null);
     const enemyActionTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -25,6 +25,14 @@ const Fight: React.FC = () => {
     const logContainerRef = useRef<HTMLDivElement | null>(null);
     const [battleOutcome, setBattleOutcome] = useState<'pending' | 'victory' | 'defeat'>('pending');
 
+    // Dungeon mode: make sure there is an enemy to fight (story mode sets its own
+    // before navigating here, and the previous one is cleared after a story battle).
+    useEffect(() => {
+        if (player && !currentEnemy && !isInStoryCombat) {
+            const enemyGenerator = new EnemyGenerator();
+            setCurrentEnemy(enemyGenerator.generateEnemies(player.worldTier, 1)[0]);
+        }
+    }, [player, currentEnemy, isInStoryCombat, setCurrentEnemy]);
 
     useEffect(() => {
         if (player && currentEnemy) {
@@ -102,31 +110,25 @@ const Fight: React.FC = () => {
         const abilityTypeLabel = AbilityType[ability.type];
 
         return (
-            <div key={ability.name} style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            <div key={ability.name} className="mk-ability">
                 <Button
                     label={ability.name}
                     onClick={() => handleAbilityClick(index)}
-                    style={{
-                        backgroundColor: '#2f3e46',
-                        color: '#f0f4f8',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: isDisabled ? 'not-allowed' : 'pointer',
-                        opacity: isDisabled ? 0.6 : 1,
-                    }}
                     disabled={isDisabled}
                 />
-                <small style={{ color: '#546a7b' }}>{abilityTypeLabel}</small>
-                <small style={{ color: '#78909c' }}>{ability.description}</small>
+                <span className="mk-label mk-ability__type">{abilityTypeLabel}</span>
+                <span className="mk-ability__desc">{ability.description}</span>
             </div>
         );
     };
 
     if (!player || !currentEnemy || !turn) {
         return (
-            <div style={{ padding: '2rem' }}>
-                <h2>Preparing battle…</h2>
-            </div>
+            <main className="mk-empty">
+                <div className="mk-panel mk-rise">
+                    <h2>Preparing battle…</h2>
+                </div>
+            </main>
         );
     }
 
@@ -134,16 +136,21 @@ const Fight: React.FC = () => {
     const enemyHealthPercent = currentEnemy.maxHealth ? Math.round((currentEnemy.health / currentEnemy.maxHealth) * 100) : 0;
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', padding: '2rem' }}>
-            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h1>{player.name} vs {currentEnemy.name}</h1>
-                <div>
-                    <span>Turn {turn.count} — </span>
-                    <strong>{turn.type === TurnType.Player ? `${player.name}'s turn` : turn.type === TurnType.Enemy ? `${currentEnemy.name}'s turn` : 'Battle complete'}</strong>
+        <main className="mk-fight">
+            <header className="mk-fight__head mk-rise">
+                <h1 className="mk-fight__title">{player.name} vs {currentEnemy.name}</h1>
+                <div className="mk-turn">
+                    Turn {turn.count} — <strong>
+                        {turn.type === TurnType.Player
+                            ? `${player.name}'s turn`
+                            : turn.type === TurnType.Enemy
+                                ? `${currentEnemy.name}'s turn`
+                                : 'Battle complete'}
+                    </strong>
                 </div>
             </header>
 
-            <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+            <section className="mk-arena mk-rise-2">
                 <CombatantCard
                     title={player.name}
                     subtitle={`Level ${player.level} ${PlayerClassEnum[player.class]}`}
@@ -153,6 +160,7 @@ const Fight: React.FC = () => {
                     armor={player.armor}
                     damage={player.damage}
                 />
+                <span className="mk-versus" aria-hidden="true">⚔</span>
                 <CombatantCard
                     title={currentEnemy.name}
                     subtitle={currentEnemy.isBoss ? 'Boss' : 'Enemy'}
@@ -161,58 +169,40 @@ const Fight: React.FC = () => {
                     healthPercent={enemyHealthPercent}
                     armor={currentEnemy.armor}
                     damage={currentEnemy.damage}
+                    isFoe
                 />
             </section>
 
-            <section style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                <h2>Abilities</h2>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
+            <section className="mk-rise-3">
+                <h2 className="mk-label" style={{ fontSize: '0.8rem', marginBottom: '0.9rem' }}>Abilities</h2>
+                <div className="mk-abilities">
                     {player.learnedAbilities.map((_, index) => renderAbilityButton(index))}
                 </div>
-                {isEnemyActing && <em style={{ color: '#8d6f55' }}>{currentEnemy.name} is preparing an action…</em>}
+                {isEnemyActing && <em className="mk-acting">{currentEnemy.name} is preparing an action…</em>}
             </section>
 
-            <section style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <h2>Battle Log</h2>
-                <div
-                    ref={logContainerRef}
-                    style={{
-                        backgroundColor: '#0f1c2e',
-                        color: '#e0e6ed',
-                        borderRadius: '8px',
-                        padding: '1rem',
-                        maxHeight: '300px',
-                        overflowY: 'auto',
-                    }}
-                >
+            <section className="mk-rise-4">
+                <h2 className="mk-label" style={{ fontSize: '0.8rem', marginBottom: '0.9rem' }}>Battle Log</h2>
+                <div ref={logContainerRef} className="mk-log">
                     {logs.length === 0 && <p>No actions yet. Choose an ability to begin.</p>}
                     {logs.map(entry => (
-                        <p key={entry.id} style={{ margin: '0.25rem 0' }}>{entry.message}</p>
+                        <p key={entry.id}>{entry.message}</p>
                     ))}
                 </div>
             </section>
 
             {turn.type === TurnType.End && (
-                <section style={{ padding: '1.5rem', borderRadius: '12px', backgroundColor: battleOutcome === 'victory' ? '#1b4b3a' : '#4b1b1b', color: '#f6f7f8', textAlign: 'center' }}>
+                <section className={`mk-panel mk-banner mk-rise ${battleOutcome === 'victory' ? 'mk-corners mk-banner--victory' : 'mk-corners mk-corners--blood mk-banner--defeat'}`}>
                     <h2>{battleOutcome === 'victory' ? '🏆 Victory!' : '💀 Defeat'}</h2>
                     <p>{player.isDead() ? `${currentEnemy.name} is victorious.` : `${player.name} stands triumphant.`}</p>
 
                     {isInStoryCombat && (
                         <button
+                            className="mk-btn mk-btn--primary"
+                            style={{ marginTop: '1rem' }}
                             onClick={() => {
-                                setIsInStoryCombat(false);
+                                setStoryCombatResult(currentEnemy.isDead() ? 'victory' : 'defeat');
                                 navigate('/story');
-                            }}
-                            style={{
-                                marginTop: '1rem',
-                                backgroundColor: '#ffd700',
-                                color: '#1a1a2e',
-                                border: 'none',
-                                borderRadius: '8px',
-                                padding: '1rem 2rem',
-                                cursor: 'pointer',
-                                fontSize: '1.1rem',
-                                fontWeight: '600',
                             }}
                         >
                             Return to Story →
@@ -220,7 +210,7 @@ const Fight: React.FC = () => {
                     )}
                 </section>
             )}
-        </div>
+        </main>
     );
 };
 
@@ -232,52 +222,34 @@ type CombatantCardProps = {
     healthPercent: number;
     armor: number;
     damage: number;
+    isFoe?: boolean;
 };
 
-const CombatantCard: React.FC<CombatantCardProps> = ({ title, subtitle, health, maxHealth, healthPercent, armor, damage }) => {
+const CombatantCard: React.FC<CombatantCardProps> = ({ title, subtitle, health, maxHealth, healthPercent, armor, damage, isFoe }) => {
     return (
-        <div style={{
-            backgroundColor: '#102a43',
-            color: '#f0f4f8',
-            borderRadius: '8px',
-            padding: '1rem',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.5rem',
-        }}>
+        <div className={`mk-panel mk-card mk-corners ${isFoe ? 'mk-corners--blood' : ''}`}>
             <div>
-                <h3 style={{ margin: 0 }}>{title}</h3>
-                <small style={{ color: '#829ab1' }}>{subtitle}</small>
+                <h3 className="mk-card__name">{title}</h3>
+                <span className="mk-card__sub">{subtitle}</span>
             </div>
             <div>
-                <strong>Health:</strong> {health} / {maxHealth}
-                <HealthBar percent={Math.max(0, Math.min(100, healthPercent))} />
+                <div className="mk-card__hp">
+                    <span className="mk-label">Health</span>
+                    <span>{Math.round(health)} / {Math.round(maxHealth)}</span>
+                </div>
+                <div className="mk-bar" style={{ marginTop: '0.35rem' }}>
+                    <div
+                        className="mk-bar__fill"
+                        style={{ width: `${Math.max(0, Math.min(100, healthPercent))}%` }}
+                    />
+                </div>
             </div>
-            <div style={{ display: 'flex', gap: '1rem' }}>
-                <span><strong>Armor:</strong> {Math.round(armor)}</span>
-                <span><strong>Damage:</strong> {Math.round(damage)}</span>
+            <div className="mk-card__stats">
+                <span className="mk-chip"><span className="mk-label">Armor</span> {Math.round(armor)}</span>
+                <span className="mk-chip"><span className="mk-label">Damage</span> {Math.round(damage)}</span>
             </div>
         </div>
     );
 };
 
-const HealthBar: React.FC<{ percent: number }> = ({ percent }) => (
-    <div style={{
-        width: '100%',
-        height: '8px',
-        backgroundColor: '#243b53',
-        borderRadius: '4px',
-        marginTop: '0.25rem',
-    }}>
-        <div style={{
-            width: `${percent}%`,
-            height: '100%',
-            borderRadius: '4px',
-            background: 'linear-gradient(90deg, #3ba796, #5ed0c0)',
-            transition: 'width 0.3s ease',
-        }} />
-    </div>
-);
-
 export default Fight;
-

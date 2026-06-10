@@ -1,38 +1,121 @@
-.App {
-  text-align: center;
+/* ============================================================
+   App shell — the gilded spine of the tome
+   ============================================================ */
+
+.mk-nav {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  height: 64px;
+  padding: 0 1.8rem;
+  background: rgba(8, 6, 16, 0.82);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
 }
 
-.App-logo {
-  height: 40vmin;
+/* a faint gold seam under the nav */
+.mk-nav::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 5%, var(--line-strong) 50%, transparent 95%);
   pointer-events: none;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.mk-brand {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 900;
+  letter-spacing: 0.3em;
+  text-decoration: none;
+  background: linear-gradient(180deg, var(--candle-bright), var(--candle-deep));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.mk-nav__links {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  gap: 1.6rem;
+  margin-left: auto;
 }
 
-.App-link {
-  color: #61dafb;
+.mk-nav__link {
+  position: relative;
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+  color: var(--parchment-dim);
+  padding: 0.4rem 0;
+  transition: color 0.25s;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+.mk-nav__link:focus-visible {
+  outline: 1px solid var(--candle);
+  outline-offset: 3px;
+  color: var(--parchment);
+}
+
+.mk-nav__link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--candle);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.3s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+.mk-nav__link:hover {
+  color: var(--parchment);
+}
+
+.mk-nav__link:hover::after {
+  transform: scaleX(0.6);
+}
+
+.mk-nav__link.active {
+  color: var(--candle-bright);
+}
+
+.mk-nav__link.active::after {
+  transform: scaleX(1);
+  box-shadow: 0 0 10px rgba(224, 168, 60, 0.55);
+}
+
+@media (max-width: 560px) {
+  .mk-nav {
+    height: auto;
+    min-height: 64px;
+    flex-wrap: wrap;
+    gap: 0.4rem 1rem;
+    padding: 0.7rem 1rem;
   }
-  to {
-    transform: rotate(360deg);
+  .mk-nav__links {
+    width: 100%;
+    margin-left: 0;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .mk-nav__link {
+    letter-spacing: 0.1em;
+  }
+  .mk-brand {
+    letter-spacing: 0.2em;
   }
 }

@@ -258,7 +258,6 @@ class ItemGenerator {
         const itemRarity = this.determineItemRarity(cumulativeRates);
         if (itemType === undefined) {
             itemType = this.randomItemType();
-            console.log(itemType);
         }
         const description = `A ${itemRarity} ${ItemType[itemType]} item`;
 
@@ -267,20 +266,39 @@ class ItemGenerator {
                 if (!weaponType) {
                     weaponType = this.randomWeaponType();
                 }
-                newItem = new Weapon(`${itemRarity.toString()}-${itemType.toString()}`, itemRarity, itemSlot, tier, description, this.calculateDamage(itemRarity, worldTier), weaponType, false);
+                newItem = new Weapon(`${itemRarity} ${WeaponType[weaponType]}`, itemRarity, itemSlot, tier, description, this.calculateDamage(itemRarity, worldTier), weaponType, false);
                 break;
             case ItemType.Armor:
                 if (!armorType) {
                     armorType = this.randomArmorType();
                 }
-                newItem = new Armor(`${itemRarity.toString()}-${itemType.toString()}`, itemRarity, itemSlot, tier, description, this.calculateArmor(itemRarity, worldTier), armorType, false);
+                newItem = new Armor(`${itemRarity} ${this.armorBaseName(itemSlot)}`, itemRarity, itemSlot, tier, description, this.calculateArmor(itemRarity, worldTier), armorType, false);
                 break;
             case ItemType.Accessory:
-                newItem = new Accessory(`${itemRarity.toString()}-${itemType.toString()}`, itemRarity, itemSlot, tier, description, this.calculateAttributeBonus(itemRarity, worldTier), this.randomAttribute(), false);
+                newItem = new Accessory(`${itemRarity} ${this.accessoryBaseName(itemSlot)}`, itemRarity, itemSlot, tier, description, this.calculateAttributeBonus(itemRarity, worldTier), this.randomAttribute(), false);
                 break;
         }
 
         return newItem;
+    }
+
+    private armorBaseName(itemSlot: ItemSlot): string {
+        switch (itemSlot) {
+            case ItemSlot.Head: return "Helm";
+            case ItemSlot.Chest: return "Cuirass";
+            case ItemSlot.Legs: return "Greaves";
+            case ItemSlot.Feet: return "Sabatons";
+            case ItemSlot.Hands: return "Gauntlets";
+            default: return "Armor";
+        }
+    }
+
+    private accessoryBaseName(itemSlot: ItemSlot): string {
+        switch (itemSlot) {
+            case ItemSlot.Neck: return "Amulet";
+            case ItemSlot.Ring: return "Ring";
+            default: return "Talisman";
+        }
     }
 
     private calculateDamage(rarity: ItemRarity, worldTier: WorldTierEnum): number {

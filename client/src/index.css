@@ -1,0 +1,1105 @@
+/* ============================================================
+   MAKAVIA — design system
+   "A forbidden grimoire, read by candlelight."
+   Ink-black depths · candleflame gold · blood crimson · cold steel
+   ============================================================ */
+
+:root {
+  /* ink — layered depths */
+  --ink-0: #080610;
+  --ink-1: #0d0a18;
+  --ink-2: #141021;
+  --ink-3: #1c172d;
+  --ink-4: #262038;
+
+  /* parchment — text */
+  --parchment: #e9dfc8;
+  --parchment-dim: #b3a78c;
+  --parchment-faint: #968b76;
+
+  /* candleflame — the good, the gold */
+  --candle: #e0a83c;
+  --candle-bright: #f6cd7c;
+  --candle-deep: #9c6f1e;
+
+  /* blood — the wicked, the wounded */
+  --blood: #a32638;
+  --blood-bright: #e0556d;
+
+  /* silver order — cold steel */
+  --steel: #8fb2d4;
+  --steel-dim: #5a7894;
+
+  /* moss — stamina, hope */
+  --moss: #7da06b;
+
+  /* hairlines */
+  --line: rgba(224, 168, 60, 0.14);
+  --line-strong: rgba(224, 168, 60, 0.34);
+
+  --font-display: 'Cinzel', 'Times New Roman', serif;
+  --font-body: 'IM Fell English', Georgia, serif;
+
+  --shadow-deep: 0 18px 50px rgba(0, 0, 0, 0.55), 0 4px 14px rgba(0, 0, 0, 0.4);
+  --glow-candle: 0 0 22px rgba(224, 168, 60, 0.22);
+  --glow-blood: 0 0 22px rgba(163, 38, 56, 0.3);
+}
+
+/* ---------- base ---------- */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100%;
+  color: var(--parchment);
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.65;
+  background-color: var(--ink-0);
+  background-image:
+    radial-gradient(ellipse 90% 55% at 50% -12%, rgba(143, 178, 212, 0.06), transparent 60%),
+    radial-gradient(ellipse 70% 45% at 50% 112%, rgba(224, 168, 60, 0.08), transparent 62%),
+    linear-gradient(180deg, #0b0816 0%, #080610 55%, #0a0712 100%);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* parchment grain */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
+}
+
+/* vignette — candlelight falls off at the edges */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 120% 90% at 50% 40%, transparent 55%, rgba(4, 3, 8, 0.55) 100%);
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--parchment);
+  margin: 0;
+}
+
+::selection {
+  background: var(--candle);
+  color: var(--ink-0);
+}
+
+/* scrollbars — a thin gilded edge */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink-4) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--ink-4);
+  border-radius: 4px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--candle-deep);
+}
+
+/* ---------- primitives ---------- */
+
+.mk-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none; /* doubles as a link style */
+  color: var(--parchment);
+  background: linear-gradient(180deg, rgba(38, 32, 56, 0.6), rgba(20, 16, 33, 0.8));
+  border: 1px solid var(--line-strong);
+  padding: 0.8rem 1.8rem;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.25s, border-color 0.25s, box-shadow 0.25s, transform 0.15s;
+}
+
+.mk-btn:hover:not(:disabled),
+.mk-btn:focus-visible {
+  color: var(--candle-bright);
+  border-color: var(--candle);
+  box-shadow: var(--glow-candle);
+}
+
+.mk-btn:focus-visible {
+  outline: 1px solid var(--candle);
+  outline-offset: 3px;
+}
+
+.mk-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.mk-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.mk-btn--primary {
+  color: var(--ink-0);
+  background: linear-gradient(180deg, var(--candle-bright), var(--candle) 55%, var(--candle-deep));
+  border-color: var(--candle-deep);
+  text-shadow: 0 1px 0 rgba(246, 205, 124, 0.5);
+}
+
+.mk-btn--primary:hover:not(:disabled),
+.mk-btn--primary:focus-visible {
+  color: var(--ink-0);
+  box-shadow: 0 0 28px rgba(224, 168, 60, 0.45);
+  border-color: var(--candle-bright);
+}
+
+.mk-btn--blood {
+  border-color: rgba(163, 38, 56, 0.55);
+}
+
+.mk-btn--blood:hover:not(:disabled) {
+  color: var(--blood-bright);
+  border-color: var(--blood-bright);
+  box-shadow: var(--glow-blood);
+}
+
+.mk-panel {
+  position: relative;
+  background: linear-gradient(180deg, rgba(28, 23, 45, 0.85), rgba(13, 10, 24, 0.95));
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-deep);
+  padding: 2rem;
+}
+
+/* gilded corner brackets — top-left and bottom-right */
+.mk-corners::before,
+.mk-corners::after {
+  content: '';
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  pointer-events: none;
+}
+.mk-corners::before {
+  top: -1px;
+  left: -1px;
+  border-top: 2px solid var(--candle);
+  border-left: 2px solid var(--candle);
+}
+.mk-corners::after {
+  bottom: -1px;
+  right: -1px;
+  border-bottom: 2px solid var(--candle);
+  border-right: 2px solid var(--candle);
+}
+
+.mk-corners--blood::before,
+.mk-corners--blood::after {
+  border-color: var(--blood-bright);
+}
+
+/* ornamental rule:  ───── ✦ ───── */
+.mk-rule {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  color: var(--candle);
+  font-size: 0.8rem;
+  margin: 0.5rem 0;
+}
+.mk-rule::before,
+.mk-rule::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--line-strong));
+}
+.mk-rule::after {
+  background: linear-gradient(90deg, var(--line-strong), transparent);
+}
+
+/* small-caps label */
+.mk-label {
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--parchment-faint);
+}
+
+/* resource / health bars */
+.mk-bar {
+  position: relative;
+  width: 100%;
+  height: 9px;
+  background: rgba(8, 6, 16, 0.9);
+  border: 1px solid rgba(224, 168, 60, 0.12);
+  overflow: hidden;
+}
+.mk-bar__fill {
+  height: 100%;
+  transition: width 0.45s cubic-bezier(0.2, 0.7, 0.3, 1);
+  background: linear-gradient(90deg, #6e1623, var(--blood) 60%, var(--blood-bright));
+}
+.mk-bar__fill--mana {
+  background: linear-gradient(90deg, #27435e, var(--steel-dim) 60%, var(--steel));
+}
+.mk-bar__fill--stamina {
+  background: linear-gradient(90deg, #3c5430, #5c7d4b 60%, var(--moss));
+}
+.mk-bar__fill--piety {
+  background: linear-gradient(90deg, var(--candle-deep), var(--candle) 60%, var(--candle-bright));
+}
+.mk-bar__fill--xp {
+  background: linear-gradient(90deg, var(--candle-deep), var(--candle));
+}
+
+/* stat chip */
+.mk-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  padding: 0.35rem 0.8rem;
+  border: 1px solid var(--line);
+  background: rgba(8, 6, 16, 0.55);
+  font-size: 0.95rem;
+}
+.mk-chip .mk-label {
+  font-size: 0.6rem;
+}
+
+/* ---------- motion ---------- */
+
+@keyframes mk-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+    filter: blur(5px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+.mk-rise {
+  animation: mk-rise 0.65s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+.mk-rise-2 {
+  animation: mk-rise 0.65s cubic-bezier(0.2, 0.7, 0.3, 1) 0.12s both;
+}
+.mk-rise-3 {
+  animation: mk-rise 0.65s cubic-bezier(0.2, 0.7, 0.3, 1) 0.24s both;
+}
+.mk-rise-4 {
+  animation: mk-rise 0.65s cubic-bezier(0.2, 0.7, 0.3, 1) 0.36s both;
+}
+
+/* drop-shadow (not text-shadow) so the glow follows the gradient-clipped glyphs */
+@keyframes mk-flicker {
+  0%, 100% {
+    filter: drop-shadow(0 0 14px rgba(224, 168, 60, 0.35));
+  }
+  47% {
+    filter: drop-shadow(0 0 9px rgba(224, 168, 60, 0.2));
+  }
+  53% {
+    filter: drop-shadow(0 0 18px rgba(224, 168, 60, 0.45));
+  }
+}
+
+@keyframes mk-ember {
+  0%, 100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ============================================================
+   HOME — the cover of the tome
+   ============================================================ */
+
+.mk-home {
+  min-height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 3rem 1.5rem 5rem;
+  position: relative;
+}
+
+.mk-home__halo {
+  position: absolute;
+  top: 18%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 640px;
+  max-width: 90vw;
+  height: 320px;
+  background: radial-gradient(ellipse, rgba(224, 168, 60, 0.13), transparent 65%);
+  pointer-events: none;
+}
+
+.mk-home__eyebrow {
+  font-style: italic;
+  color: var(--parchment-dim);
+  letter-spacing: 0.08em;
+  margin: 0 0 1.2rem;
+}
+
+.mk-home__title {
+  font-size: clamp(3.2rem, 11vw, 6.5rem);
+  font-weight: 900;
+  letter-spacing: 0.22em;
+  margin-right: -0.22em; /* optically recenter the tracking */
+  background: linear-gradient(180deg, var(--candle-bright) 20%, var(--candle) 55%, var(--candle-deep) 95%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: mk-flicker 4.5s ease-in-out infinite;
+}
+
+.mk-home__rule {
+  width: min(420px, 70vw);
+  margin: 1.6rem 0;
+}
+
+.mk-home__lede {
+  max-width: 52ch;
+  font-size: 1.15rem;
+  font-style: italic;
+  color: var(--parchment-dim);
+  margin: 0 0 2.4rem;
+}
+
+.mk-home__actions {
+  display: flex;
+  gap: 1.2rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.mk-home__actions .mk-btn {
+  padding: 1rem 2.6rem;
+  font-size: 0.95rem;
+}
+
+/* ============================================================
+   CHARACTER SHEET
+   ============================================================ */
+
+.mk-sheet {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+}
+
+.mk-sheet__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.mk-sheet__name {
+  font-size: 2.2rem;
+  font-weight: 700;
+}
+
+.mk-sheet__epithet {
+  font-style: italic;
+  color: var(--parchment-dim);
+  margin: 0.2rem 0 0;
+}
+
+.mk-sheet__coins {
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+
+.mk-sheet__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.4rem;
+  align-items: start;
+}
+
+.mk-sheet h2 {
+  font-size: 0.95rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--candle);
+  margin-bottom: 1.2rem;
+}
+
+.mk-stat-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.9rem;
+}
+
+.mk-stat-row__line {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.mk-stat-row__value {
+  font-family: var(--font-display);
+  font-size: 0.92rem;
+  color: var(--parchment);
+}
+
+.mk-attr {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid rgba(224, 168, 60, 0.08);
+}
+.mk-attr:last-child {
+  border-bottom: none;
+}
+.mk-attr__name {
+  color: var(--parchment-dim);
+}
+.mk-attr__value {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--candle-bright);
+}
+
+.mk-equip {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid rgba(224, 168, 60, 0.08);
+}
+.mk-equip:last-child {
+  border-bottom: none;
+}
+
+.mk-ability-row {
+  padding: 0.7rem 0;
+  border-bottom: 1px solid rgba(224, 168, 60, 0.08);
+}
+.mk-ability-row:last-child {
+  border-bottom: none;
+}
+.mk-ability-row__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.mk-ability-row__name {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--parchment);
+}
+.mk-ability-row__desc {
+  margin: 0.25rem 0 0;
+  font-size: 0.92rem;
+  font-style: italic;
+  color: var(--parchment-faint);
+}
+
+/* item rarity inks */
+.rarity-common    { color: #a7a394; }
+.rarity-uncommon  { color: #8fbf7a; }
+.rarity-rare      { color: #7aa3d6; }
+.rarity-epic      { color: #b98add; }
+.rarity-legendary { color: #e0913c; }
+.rarity-mythical  { color: #e06a86; }
+.rarity-artifact  { color: #f0d588; text-shadow: 0 0 10px rgba(240, 213, 136, 0.4); }
+
+.mk-empty {
+  max-width: 520px;
+  margin: 14vh auto 0;
+  text-align: center;
+}
+
+/* ============================================================
+   FIGHT — the dungeon
+   ============================================================ */
+
+.mk-fight {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
+}
+
+.mk-fight__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+
+.mk-fight__title {
+  font-size: 1.6rem;
+}
+
+.mk-turn {
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--parchment-dim);
+  border: 1px solid var(--line);
+  padding: 0.45rem 1rem;
+  background: rgba(8, 6, 16, 0.55);
+}
+.mk-turn strong {
+  color: var(--candle-bright);
+}
+
+.mk-arena {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 1.2rem;
+  align-items: stretch;
+}
+
+.mk-versus {
+  align-self: center;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.4rem;
+  color: var(--blood-bright);
+  text-shadow: 0 0 16px rgba(163, 38, 56, 0.5);
+  padding: 0 0.4rem;
+}
+
+@media (max-width: 720px) {
+  .mk-arena {
+    grid-template-columns: 1fr;
+  }
+  .mk-versus {
+    justify-self: center;
+  }
+}
+
+.mk-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  padding: 1.4rem 1.5rem;
+}
+
+.mk-card__name {
+  font-size: 1.15rem;
+}
+
+.mk-card__sub {
+  font-style: italic;
+  font-size: 0.88rem;
+  color: var(--parchment-faint);
+}
+
+.mk-card__hp {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+}
+
+.mk-card__stats {
+  display: flex;
+  gap: 0.7rem;
+}
+
+.mk-abilities {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 0.9rem;
+}
+
+.mk-ability {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.mk-ability .mk-btn {
+  width: 100%;
+}
+
+.mk-ability__type {
+  font-size: 0.62rem;
+}
+
+.mk-ability__desc {
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--parchment-faint);
+}
+
+.mk-acting {
+  font-style: italic;
+  color: var(--blood-bright);
+  animation: mk-ember 1.2s ease-in-out infinite;
+}
+
+.mk-log {
+  background: rgba(8, 6, 16, 0.7);
+  border: 1px solid var(--line);
+  padding: 1.2rem 1.4rem;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.mk-log p {
+  margin: 0.3rem 0;
+  font-size: 0.98rem;
+  color: var(--parchment-dim);
+  animation: mk-rise 0.4s ease both;
+}
+
+.mk-banner {
+  text-align: center;
+  padding: 2.2rem 1.5rem;
+}
+
+.mk-banner h2 {
+  font-size: 1.9rem;
+  letter-spacing: 0.14em;
+}
+
+.mk-banner p {
+  font-style: italic;
+  color: var(--parchment-dim);
+}
+
+.mk-banner--victory h2 {
+  color: var(--candle-bright);
+  text-shadow: 0 0 26px rgba(224, 168, 60, 0.5);
+}
+
+.mk-banner--defeat h2 {
+  color: var(--blood-bright);
+  text-shadow: 0 0 26px rgba(163, 38, 56, 0.55);
+}
+
+/* ============================================================
+   STORY — the pages of the tome
+   ============================================================ */
+
+.mk-story {
+  min-height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
+  padding: 2rem 1.5rem 3rem;
+}
+
+.mk-story__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  max-width: 880px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.mk-story__chapter {
+  font-size: 1.35rem;
+}
+
+.mk-story__player {
+  font-style: italic;
+  font-size: 0.9rem;
+  color: var(--parchment-faint);
+  margin: 0.2rem 0 0;
+}
+
+.mk-story__main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: 760px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.mk-story__foot {
+  display: flex;
+  justify-content: center;
+}
+
+/* mood inks for narration */
+.mood-neutral  { --mood: #8a8070; }
+.mood-tense    { --mood: #9a6fd0; }
+.mood-romantic { --mood: #d4738f; }
+.mood-dark     { --mood: #c03b4b; }
+.mood-hopeful  { --mood: #7da06b; }
+
+.mk-narration {
+  position: relative;
+  padding: 2.4rem 2.6rem;
+  background: linear-gradient(180deg, rgba(28, 23, 45, 0.82), rgba(13, 10, 24, 0.94));
+  border: 1px solid var(--line);
+  border-top: 2px solid var(--mood, var(--line-strong));
+  box-shadow: var(--shadow-deep), inset 0 1px 24px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
+}
+
+.mk-narration__text {
+  margin: 0;
+  font-size: 1.22rem;
+  font-style: italic;
+  line-height: 1.85;
+  color: var(--parchment);
+}
+
+/* drop cap only when the text opens with a letter — leading quotes/ellipses
+   would be swallowed into the cap (per the ::first-letter spec) and torn apart */
+.mk-narration__text--dropcap::first-letter {
+  font-family: var(--font-display);
+  font-style: normal;
+  font-size: 3.1em;
+  font-weight: 700;
+  float: left;
+  line-height: 0.78;
+  padding: 0.06em 0.14em 0 0;
+  color: var(--mood, var(--candle-bright));
+  text-shadow: 0 0 18px rgba(224, 168, 60, 0.25);
+}
+
+.mk-narration .mk-btn {
+  align-self: center;
+}
+
+/* emotion inks for dialogue */
+.emotion-neutral   { --emotion: #8a8070; }
+.emotion-angry     { --emotion: #d4435c; }
+.emotion-happy     { --emotion: #7da06b; }
+.emotion-sad       { --emotion: #6f93b8; }
+.emotion-surprised { --emotion: #e0a83c; }
+.emotion-flirty    { --emotion: #d4738f; }
+
+.mk-dialogue {
+  position: relative;
+  padding: 1.8rem 2.2rem;
+  background: linear-gradient(180deg, rgba(28, 23, 45, 0.82), rgba(13, 10, 24, 0.94));
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--emotion, var(--line-strong));
+  box-shadow: var(--shadow-deep);
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.mk-dialogue__speaker {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.mk-portrait {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--candle-bright);
+  background: radial-gradient(circle at 35% 30%, var(--ink-4), var(--ink-1));
+  border: 1px solid var(--emotion, var(--line-strong));
+  box-shadow: 0 0 16px rgba(0, 0, 0, 0.5), inset 0 0 12px rgba(0, 0, 0, 0.5);
+  flex-shrink: 0;
+}
+
+.mk-dialogue__name {
+  font-size: 1.1rem;
+}
+
+.mk-dialogue__title {
+  font-style: italic;
+  font-size: 0.85rem;
+  color: var(--parchment-faint);
+}
+
+.mk-dialogue__text {
+  margin: 0;
+  font-size: 1.18rem;
+  line-height: 1.8;
+  color: var(--parchment);
+}
+
+.mk-dialogue .mk-btn {
+  align-self: flex-end;
+}
+
+/* choices */
+.mk-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.8rem 2rem;
+}
+
+.mk-choices__prompt {
+  margin: 0;
+  font-style: italic;
+  font-size: 1.05rem;
+  color: var(--parchment-dim);
+}
+
+.mk-choice {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  text-align: left;
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  color: var(--parchment);
+  background: rgba(8, 6, 16, 0.5);
+  border: 1px solid rgba(224, 168, 60, 0.1);
+  border-left: 2px solid transparent;
+  padding: 1rem 1.3rem;
+  cursor: pointer;
+  transition: border-color 0.22s, background 0.22s, transform 0.22s, box-shadow 0.22s;
+}
+
+.mk-choice:hover,
+.mk-choice:focus-visible {
+  border-color: var(--line-strong);
+  border-left-color: var(--candle);
+  background: rgba(28, 23, 45, 0.75);
+  transform: translateX(6px);
+  box-shadow: var(--glow-candle);
+}
+
+.mk-choice:focus-visible {
+  outline: 1px solid var(--candle);
+  outline-offset: 2px;
+}
+
+.mk-choice__meta {
+  display: flex;
+  gap: 1rem;
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.mk-choice__tooltip {
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--parchment-faint);
+}
+
+/* combat summons */
+.mk-combat-call {
+  text-align: center;
+  padding: 2.4rem 2rem;
+  border: 1px solid rgba(163, 38, 56, 0.4);
+  background:
+    radial-gradient(ellipse 80% 100% at 50% 0%, rgba(163, 38, 56, 0.12), transparent 70%),
+    linear-gradient(180deg, rgba(28, 23, 45, 0.85), rgba(13, 10, 24, 0.95));
+  box-shadow: var(--shadow-deep);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+.mk-combat-call h2 {
+  color: var(--blood-bright);
+  letter-spacing: 0.2em;
+  font-size: 1.3rem;
+  text-shadow: 0 0 18px rgba(163, 38, 56, 0.5);
+}
+
+.mk-combat-call p {
+  margin: 0;
+  font-style: italic;
+  font-size: 1.12rem;
+  color: var(--parchment);
+  max-width: 48ch;
+}
+
+/* checkpoint — the chapter seal */
+.mk-checkpoint {
+  text-align: center;
+  padding: 3rem 2.2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.3rem;
+}
+
+.mk-seal {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.9rem;
+  color: var(--candle-bright);
+  border: 1px solid var(--line-strong);
+  background: radial-gradient(circle at 38% 30%, var(--ink-4), var(--ink-1));
+  box-shadow: var(--glow-candle), inset 0 0 16px rgba(0, 0, 0, 0.5);
+  animation: mk-ember 3s ease-in-out infinite;
+}
+
+.mk-checkpoint__kicker {
+  letter-spacing: 0.26em;
+  font-size: 0.78rem;
+  color: var(--candle);
+}
+
+.mk-checkpoint__title {
+  font-size: 1.6rem;
+}
+
+.mk-checkpoint__summary {
+  margin: 0;
+  max-width: 52ch;
+  font-style: italic;
+  font-size: 1.1rem;
+  color: var(--parchment-dim);
+}
+
+/* morality */
+.mk-morality {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 1rem 1.3rem;
+  min-width: 230px;
+  background: rgba(8, 6, 16, 0.55);
+  border: 1px solid var(--line);
+}
+
+.mk-morality__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.mk-morality__track {
+  position: relative;
+  height: 7px;
+  background: rgba(8, 6, 16, 0.9);
+  border: 1px solid rgba(224, 168, 60, 0.1);
+}
+
+.mk-morality__spectrum {
+  position: absolute;
+  inset: 0;
+  opacity: 0.35;
+  background: linear-gradient(90deg, #8b0000, #dc143c, #555, #8fb2d4, #f6cd7c);
+}
+
+.mk-morality__needle {
+  position: absolute;
+  top: 50%;
+  width: 11px;
+  height: 11px;
+  transform: translate(-50%, -50%) rotate(45deg);
+  border: 1px solid rgba(233, 223, 200, 0.8);
+  transition: left 0.4s ease;
+}
+
+.mk-morality__ends {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-display);
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--parchment-faint);
+}
+
+.mk-morality--compact {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+  padding: 0.4rem 0.9rem;
+}
+
+.mk-morality__gem {
+  width: 11px;
+  height: 11px;
+  transform: rotate(45deg);
+  border: 1px solid rgba(233, 223, 200, 0.6);
+  flex-shrink: 0;
+}
